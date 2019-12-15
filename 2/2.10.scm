@@ -1,10 +1,5 @@
 (load "2.8.scm")
 
-(define (int-error message int)
-    (display message)
-    (display ": ")
-    (print-interval int))
-
 (define (interval-spans-zero? int)
     (and (< (lower-bound int) 0)
             (> (upper-bound int) 0)))
@@ -23,6 +18,3 @@
 (define int-b (make-interval (- 1) 1))
 
 (define int-c (div-interval int-a int-b))
-
-
-(print-interval int-c) (newline)

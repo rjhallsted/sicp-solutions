@@ -15,4 +15,12 @@
                 (make-interval (/ 1.0 (upper-bound y))
                                (/ 1.0 (lower-bound y)))))
 
-(define (make-interval a b) (cons a b))                               
+(define (make-interval a b) (cons a b))
+
+(define (print-interval x)
+    (newline)
+    (display "(")
+    (display (lower-bound x))
+    (display ", ")
+    (display (upper-bound x))
+    (display ")"))

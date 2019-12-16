@@ -9,6 +9,6 @@
         (* (/ (- (upper-bound i) c) c) 100)))
 
 ;testing
-(define int-a (make-center-percent 6.8 10))
-(print-interval int-a) (newline)
-(display (percent int-a)) (newline)
+;(define int-a (make-center-percent 6.8 10))
+;(print-interval int-a) (newline)
+;(display (percent int-a)) (newline)

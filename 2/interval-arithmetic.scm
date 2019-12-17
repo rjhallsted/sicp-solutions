@@ -31,3 +31,10 @@
   (/ (+ (lower-bound i) (upper-bound i)) 2))
 (define (width i)
   (/ (- (upper-bound i) (lower-bound i)) 2))
+
+(define (print-center-width i)
+  (newline)
+  (display (center i))
+  (display " (")
+  (display (percent i))
+  (display ")"))

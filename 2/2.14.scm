@@ -14,6 +14,8 @@
 
 (print-center-width (par1 int-a int-b))
 (print-center-width (par2 int-a int-b))
+(print-interval int-a)
+(print-interval (div-interval int-a int-a))
 (print-center-width (div-interval int-a int-a))
 (print-center-width (div-interval int-a int-b))
 
@@ -27,6 +29,15 @@
 (print-center-width (par2 int-c int-d))
 (print-center-width (div-interval int-c int-c))
 (print-center-width (div-interval int-c int-d))
+
+(newline)
+
+(define int-aa (make-interval 2 8))
+(define int-bb (make-interval 2 8))
+
+(print-interval int-aa)
+(print-interval int-bb)
+(print-interval (div-interval int-aa int-bb))
 
 (newline)
 

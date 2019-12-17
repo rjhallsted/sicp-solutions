@@ -8,6 +8,12 @@
     (let ((c (center i)))
         (* (/ (- (upper-bound i) c) c) 100)))
 
+;better version of percent
+(define (percent i)
+    (* (/ (- (upper-bound i) (lower-bound i))
+            (+ (upper-bound i) (lower-bound i)))
+        100))
+
 ;testing
 ;(define int-a (make-center-percent 6.8 10))
 ;(print-interval int-a) (newline)

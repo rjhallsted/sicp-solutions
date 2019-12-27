@@ -1,3 +1,23 @@
+(define (frame-coord-map frame)
+  (lambda (v)
+    (add-vect
+     (origin-frame frame)
+     (add-vect (scale-vect (xcor-vect v)
+                           (edge1-frame frame))
+               (scale-vect (ycor-vect v)
+                           (edge2-frame frame))))))
+
+
+(define (split first-split second-split)
+    (lambda (painter n)
+        (if (= n 0)
+            painter)
+            (let ((smaller ((split first-split second-split) painter (- n 1))))
+                (first-split painter (second-split smaller smaller)))))
+
+(define right-split (split beside below))
+(define up-split (split below beside))
+
 (define (corner-split painter n)
     (if (= n 0)
         painter
@@ -8,19 +28,6 @@
                 (corner (corner-split painter (- n 1))))
             (beside (below painter top-left)
                     (below bottom-right corner))))))
-
-(define (right-split painter n)
-    (if (= n 0)
-        painter
-        (let ((smaller (right-split painter (- n 1))))
-            (beside painter (below smaller smaller)))))
-
-
-(define (up-split painter n)
-    (if (= n 0)
-        painter
-        (let ((smaller (up-split painter (- n 1))))
-            (below painter (beside smaller smaller)))))
 
 (define (square-of-four tl tr bl br)
     (lambda (painter)

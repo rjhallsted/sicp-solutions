@@ -59,4 +59,8 @@
 (display (tree->list-1 tree-c)) (newline)
 (display (tree->list-2 tree-c)) (newline)
 
-;b. The procedures have the same order of growth
+;b. The procedures have the same order of growth. I've seen explanations where 1 is O(log n) and 
+;2 is O(n), but I don't see how. The procedure must touch every node in the list, making it at minimum O(n).
+;Both procedures appear to be structurally the same, making them have the same order of growth.
+;The only difference is how the resulting list is tracked, and the use of append in 1.
+;2, by using cons instead of append, might be marginally faster, but not by a different order. Each join must touch every node so far due to the use of append, whereas 2 has only one cons for each node, leaving each node touched only once.

@@ -29,39 +29,38 @@
 (define (balance-tree tree)
     (list->tree (tree->list tree)))
 
-
-;; (define (union-set set1 set2)
-;;     (cond ((null? set1) set2)
-;;         ((null? set2) set1)
-;;         (else
-;;             (let ((x1 (car set1)) (x2 (car set2)))
-;;                 (cond ((= x1 x2)
-;;                         (cons x1 (union-set (cdr set1) (cdr set2))))
-;;                     ((< x1 x2)
-;;                         (cons x1 (union-set (cdr set1) set2)))
-;;                     ((< x2 x1)
-;;                         (cons x2 (union-set set1 (cdr set2)))))))))
-
-
-
-;this is way more than O(n)
-(define (union-set set1 set2)
-    (balance-tree
+(define (union-set a b)
+    (define (union-set-inner set1 set2)
         (cond ((null? set1) set2)
             ((null? set2) set1)
             (else
-                (let ((x1 (entry set1)) (x2 (entry set2)))
+                (let ((x1 (car set1)) (x2 (car set2)))
                     (cond ((= x1 x2)
-                            (make-tree x1 (union-set (left-branch set1) (left-branch set2))
-                                        (union-set (right-branch set1) (right-branch set2))))
+                            (cons x1 (union-set-inner (cdr set1) (cdr set2))))
                         ((< x1 x2)
-                            (union-set (adjoin-set x2 set1)
-                                        (union-set (left-branch set2) (right-branch set2))))
-                        ((> x1 x2)
-                            (union-set (union-set (left-branch set1) (right-branch set1))
-                                        (adjoin-set x1 set2)))))))))                                    
+                            (cons x1 (union-set-inner (cdr set1) set2)))
+                        ((< x2 x1)
+                            (cons x2 (union-set-inner set1 (cdr set2)))))))))
+    (list->tree (union-set-inner (tree->list a) (tree->list b))))
 
-(define tree-a (list->tree '(1 3 5 7 9 11)))
-(define tree-b (list->tree '(2 4 6 8 10 12)))
+(define (intersection-set a b)
+    (define (intersection-set-inner set1 set2)
+        (if (or (null? set1) (null? set2))
+            '()    
+            (let ((x1 (car set1)) (x2 (car set2)))
+                (cond ((= x1 x2)
+                        (cons x1
+                            (intersection-set-inner (cdr set1)
+                                                    (cdr set2))))
+                    ((< x1 x2)
+                        (intersection-set-inner (cdr set1) set2))
+                    ((< x2 x1)
+                        (intersection-set-inner set1 (cdr set2)))))))
+    (list->tree (intersection-set-inner (tree->list a) (tree->list b))))
+                              
+
+(define tree-a (list->tree '(1 3 5 7 9 11 12 15 18 23)))
+(define tree-b (list->tree '(2 4 6 8 10 12 15 18)))
 
 (display (union-set tree-a tree-b)) (newline)
+(display (intersection-set tree-a tree-b)) (newline)

@@ -72,3 +72,27 @@
         ((element-of-set? symbol (symbols (right-branch tree)))
             (cons 1 (encode-symbol symbol (right-branch tree))))
         (else (error "symbol not found in tree -- ENCODE-SYMBOL" symbol))))
+
+(define (generate-huffman-tree pairs)
+  (successive-merge (make-leaf-set pairs)))
+
+(define (min a b) (if (< b a) b a))
+
+(define (do-merge leaves)
+    (define (smallest-weight leaves)
+        (accumulate (lambda (item comparison) (min (weight item) comparison))
+                    10000000
+                    leaves))
+    (define (do-merge-inner leaves small-weight)
+        (if (or (= small-weight (weight (car leaves)))
+                (null? (cddr leaves)))
+            (cons (make-code-tree (car leaves) (cadr leaves))
+                  (cddr leaves))
+            (cons (car leaves)
+                  (do-merge-inner (cdr leaves) small-weight))))
+    (do-merge-inner leaves (smallest-weight leaves)))
+
+(define (successive-merge leaves)
+    (if (null? (cdr leaves))
+        leaves
+        (successive-merge (do-merge leaves))))

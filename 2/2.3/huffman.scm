@@ -1,3 +1,5 @@
+(load "../2.2/list-ops.scm")
+
 (define (make-leaf symbol weight)
     (list 'leaf symbol weight))
 (define (leaf? object)

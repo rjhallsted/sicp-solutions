@@ -1,0 +1,1 @@
+;The order of growth for encode-symbol is O(n * log(n)). It is that for the worst case. For the best case, it is better than O(n^2)

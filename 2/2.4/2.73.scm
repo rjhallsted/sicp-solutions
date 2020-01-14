@@ -6,7 +6,10 @@
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
 
-;a) We made the deriv procedure additive, by using the table structure discussed prior. variable? and same-variable? aren't functionally part of the data-directed dispatch. Their functionality is external to the dispatch. Also, number? is a scheme primitive.
+(define (attach-tag symbol exp)
+    (cons symbol exp))
+
+;a) number? and same-variable? are predicates. there's nothing to dispatch. 
 
 ;b) 
 (define (install-deriv-sum-package)
@@ -18,11 +21,12 @@
         (cond ((=number? a1 0) a2)
             ((=number? a2 0) a1)
             ((and (number? a1) (number? a2)) (+ a1 a2))
-            (else (list '+ a1 a2))))
+            (else (tag (cons a1 a2)))))
     (define (addend s) (car s))
-    (define (augend s) (caddr s))
+    (define (augend s) (cdr s))
     (define (=number? exp num)
         (and (number? exp) (= exp num)))
+    (define (tag exp) (attach-tag '+ exp))
     ;; interface to the rest of the system
     (put 'deriv '+ (lambda (exp var) (sum-deriv exp var)))
     (put 'make '+ (lambda (a1 a2) (make-sum a1 a2)))
@@ -42,11 +46,12 @@
             ((=number? m1 1) m2)
             ((=number? m2 1) m1)
             ((and (number? m1) (number? m2)) (* m1 m2))
-            (else (list '* m1 m2))))
+            (else (tag (cons m1 m2)))))
     (define (multilplier s) (car s))
-    (define (multiplicand s) (caddr s))
+    (define (multiplicand s) (cdr s))
     (define (=number? exp num)
         (and (number? exp) (= exp num)))
+    (define (tag exp) (attach-tag '* exp))
     ;; interface to the rest of the system
     (put 'deriv '* (lambda (exp var) (product-deriv exp var)))
     (put 'make '* (lambda (m1 m2) (make-product m1 m2)))
@@ -66,7 +71,8 @@
     (define (base ex) (cadr ex))
     (define (exponent ex) (caddr ex))
     (define (make-exponentiation base power)
-        (list '** base power))
+        (tag (cons base power)))
+    (define (tag exp) (attach-tag '** exp))
     ;; interface to the rest of the system
     (put 'deriv '** (lambda (exp var) (exponent-deriv exp var)))
     (put 'make '** (lambda (m1 m2) (make-exponentiation m1 m2)))

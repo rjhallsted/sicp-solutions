@@ -12,18 +12,18 @@
 
 ;;;;new definitions
 (define (attach-tag type-tag contents)
-    (if (number? (car contents))
+    (if (number? contents)
         contents
         (cons type-tag contents)))
 (define (contents datum)
-    (if (pair? datum)
-        (if (number? (car datum))
-            datum
+    (if (number? datum)
+        datum
+        (if (pair? datum)
             (cdr datum))
-        (error "Bad tagged datum: CONTENTS" datum)))
+            (error "Bad tagged datum: CONTENTS" datum)))
 (define (type-tag datum)
-    (if (pair? datum)
-        (if (number? (car datum))
-            'scheme-number
+    (if (number? datum)
+        'scheme-number
+        (if (pair? datum)
             (car datum))
-        (error "Bad tagged datum: TYPE-TAG" datum)))
+            (error "Bad tagged datum: TYPE-TAG" datum)))

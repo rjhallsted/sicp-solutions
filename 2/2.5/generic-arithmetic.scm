@@ -161,3 +161,6 @@
     (put 'equ '(scheme-number complex) other-complex-equ?)
     (put 'equ '(rational complex) other-complex-equ?)
     'done)
+
+(define (=zero? x)
+    (equ? x 0))

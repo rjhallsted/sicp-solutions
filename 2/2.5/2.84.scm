@@ -2,6 +2,8 @@
 
 ;;to figure out if some type is higher than another, count how many times it can be raised.
 
+(install-raise-package)
+
 (define (apply-generic op . args)
     (define (count-raises x count)
         (let ((raise-proc (get 'raise (type-tag x))))

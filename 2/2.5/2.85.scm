@@ -1,7 +1,53 @@
 (load "2.83.scm")
 
-;;to figure out if some type is higher than another, count how many times it can be raised.
+(define (install-equ?)
+    (define (rational-equ? a b)
+        (and (= (numer a) (numer b))
+             (= (denom a) (denom b))))
+    (define (complex-equ? a b)
+        (and (= (real-part a) (real-part b))
+             (= (imag-part a) (imag-part b))))
+    (put 'equ? '(real real) =)
+    (put 'equ? '(rational rational) rational-equ?)
+    (put 'equ? '(complex complex) complex-equ?)
+    (put 'equ? '(integer integer) =)
+    'done)
+(install-equ?)
 
+(define (are-equal? a b)
+    (define (raise-to-roof x)
+        (let ((proc (get 'raise (type-tag x))))
+            (if proc
+                (raise-to-roof (apply proc (contents x))
+                x)))
+    (if (eq? (type-tag a) (type-tag b))
+        (equ? a b)
+        (equ? (raise-to-roof a) (raise-to-roof b))))
+
+(define (install-drop-package)
+    (define (project-complex x)
+        (real-part x))
+    (define (project-real x)
+        (make-rational 1 (/ 1 x)))
+    (define (project-rational x)
+        (round (numer x) (denom x)))
+    
+    (put 'project 'complex project-complex)
+    (put 'project 'real project-real)
+    (put 'project 'rational project-rational)
+    'done)
+
+(define (drop x)
+    (let ((proc (get 'project (type-tag x))))
+        (if proc
+            (let ((dropped (apply proc (contents x)))
+                (let ((raise-proc (get 'raise (type-tag dropped))))
+                    (if (are-equal? dropped (apply raise-proc (contents dropped)))
+                        (drop dropped)
+                        x)))
+            x)))
+
+(install-drop-package)
 (install-raise-package)
 
 (define (apply-generic op . args)
@@ -13,10 +59,12 @@
     (define (no-method-error)
         (error "No method for these types"
                 (list op type-tags)))
+    (define (simplied proc)
+        (lambda (. args) (apply drop (apply proc args))))
     (let ((type-tags (map type-tag args)))
         (let ((proc (get op type-tags)))
             (if proc
-                (apply proc (map contents args))
+                ((simplified proc) (map contents args)))
                 (if (= (length args) 2)
                     (let (t1 (car type-tags))
                          (t2 (cadr type-tags))

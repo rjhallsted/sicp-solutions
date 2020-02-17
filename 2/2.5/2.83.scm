@@ -12,3 +12,12 @@
     (put 'raise 'rational rational->scheme-number)
     (put 'raise 'scheme-number scheme-number->complex)
     'done)
+
+(define (raise-to tag x)
+    (if (eq? tag (type-tag x))
+        x
+        (let ((proc (get 'raise (type-tag x))))
+            (if proc
+                (raise-to tag (apply proc (contents x)))
+                (error "Unable to raise to the given tag"
+                        tag x)))))

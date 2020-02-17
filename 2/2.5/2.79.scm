@@ -1,3 +1,5 @@
+;;heirarchy here is complex->rational->scheme-number
+
 (define (install-equ?)
     (define (rational-equ? a b)
         (and (= (numer a) (numer b))

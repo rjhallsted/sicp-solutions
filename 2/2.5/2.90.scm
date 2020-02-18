@@ -7,10 +7,8 @@
         (null? p))
     (define (first-term term-list) (car term-list))
     (define (rest-terms term-list) (cdr term-list))
-    (define (the-empty-termlist) '())
     ;;interface
     (define (tag x) (attach-tag 'sparse x))
-    (put 'empty-termlist? 'sparse empty-termlist?)
     (put 'adjoin-term '(term sparse) (lambda (t tl) (tag (adjoin-term t tl))))
     (put 'first-term 'sparse first-term)
     (put 'rest-terms 'sparse (lambda (p) (tag (rest-terms p))))
@@ -29,11 +27,9 @@
     (define (first-term term-list)
         (make-term (length term-list) (car term-list)))
     (define (rest-terms term-list) (cdr term-list))
-    (define (the-empty-termlist '()))
     ;;interface
     (define (tag x) (attach-tag 'dense x))
     (put 'adjoin-term '(term dense) (lambda t tl) (tag (adjoin-term t tl)))
-    (put 'empty-termlist? 'dense empty-termlist?)
     (put 'first-term 'dense first-term)
     (put 'rest-terms 'dense (lambda (p) (tag (rest-terms p))))
     'done)
@@ -104,6 +100,7 @@
     (define (make-term order coeff) (list order coeff))
     (define (order term) (car term))
     (define (coeff term) (cadr term))
+    (define (the-empty-termlist) '())
     ;; interface to rest of the system
     (install-sparce-polynomials)
     (install-dense-polynomials)

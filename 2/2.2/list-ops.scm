@@ -1,5 +1,12 @@
 (define nil '())
 
+(define (list-contains? item l)
+  (if (null? l)
+      #t
+    (if (equal? item (car l))
+        #t
+        (list-contains? item (cdr l)))))
+
 (define (accumulate op initial sequence)
   (if (null? sequence)
       initial

@@ -1,3 +1,38 @@
+;;need a way to coerce second poly to the same order of the first
+;; (y)x + (x)y --> (y)x + (y)x
+;;need a way to swap the variables at one level of the poly
+;;;;with this, you can sort variables as necessary
+
+;;apply communitiity. Multiply the variable and its order by each subterm of
+;;the coefficient.
+;;the outer variable and its order become the coefficient of each subterm of the
+;;original coefficient.
+;;^ do that to each term
+
+;;if the terms have the same variables, that works.
+
+;;Assume the order of the first polynomial. Any additional variables remain in the order they were found at bottom of the 'variable stack'
+
+;;first you have to get the order of the variable stack.
+;;Order is determined first by depth, and then by term order.
+
+(load "../2.2/list-ops.scm")
+
+(define (variable-order p)
+    (define (variable-order-inner p)
+        (let ((coeff-polys 
+                (map (lambda (x) (coeff x))
+                    (fitler (lambda (x) (not (number? (coeff x))))
+                            (terms p)))))
+            (accumulate (lambda (item processed)
+                            (if (list-contains item processed)
+                                (cons item processed)
+                                processed))
+                        '()
+                        (append (map (lambda (x) (variable x)) terms-with-poly-coeffs)
+                                (map variable-order-inner coeff-polys))))
+    (cons (variable p) (variable-order-inner p)))
+
 (define (install-sparce-polynomials)
     (define (adjoin-term term term-list)
         (if (=zero? (coeff term))

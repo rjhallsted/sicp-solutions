@@ -18,7 +18,10 @@
 
 (define (div-poly p1 p2)
     (if (same-variable? (variable p1) (variable p2))
-        (make-poly (variable p1)
-                   (div-terms (term-list p1) (term-list p2)))
+        (let ((result (div-terms (term-list p1) (term-list p2))))
+            (list (make-poly (variable p1) (car result))
+                  (make-poly (variable p1) (cadr result))))
         (error "Polys not in same var: DIV-POLY" 
                     (list p1 p2))))
+
+                    

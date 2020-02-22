@@ -158,7 +158,6 @@
     (define (order term) (car term))
     (define (coeff term) (cadr term))
     (define (the-empty-termlist) '())
-    (define (polynomial? x) (eq? (type-tag x) 'polynomial))
     ;; interface to rest of the system
     (install-sparce-polynomials)
     (install-dense-polynomials)
@@ -190,3 +189,4 @@
 (define (make-term order coeff) ((get 'make 'term) order coeff))
 (define (make-polynomial var terms)
     ((get 'make 'polynomial) var terms))
+(define (polynomial? x) (eq? (type-tag x) 'polynomial))

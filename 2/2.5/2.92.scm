@@ -1,37 +1,6 @@
-;;need a way to coerce second poly to the same order of the first
-;; (y)x + (x)y --> (y)x + (y)x
-;;need a way to swap the variables at one level of the poly
-;;;;with this, you can sort variables as necessary
-
-;;apply communitiity. Multiply the variable and its order by each subterm of
-;;the coefficient.
-;;the outer variable and its order become the coefficient of each subterm of the
-;;original coefficient.
-;;^ do that to each term
-
-;;if the terms have the same variables, that works.
-
-;;Assume the order of the first polynomial. Any additional variables remain in the order they were found at bottom of the 'variable stack'
-
-;;first you have to get the order of the variable stack.
-;;Order is determined first by depth, and then by term order.
-
 (load "../2.2/list-ops.scm")
 
-(define (variable-order p)
-    (define (variable-order-inner p)
-        (let ((coeff-polys 
-                (map (lambda (x) (coeff x))
-                    (fitler (lambda (x) (not (number? (coeff x))))
-                            (terms p)))))
-            (accumulate (lambda (item processed)
-                            (if (list-contains item processed)
-                                (cons item processed)
-                                processed))
-                        '()
-                        (append (map (lambda (x) (variable x)) terms-with-poly-coeffs)
-                                (map variable-order-inner coeff-polys))))
-    (cons (variable p) (variable-order-inner p)))
+;;general polynomial sort
 
 (define (install-sparce-polynomials)
     (define (adjoin-term term term-list)
@@ -70,6 +39,58 @@
     'done)
 
 (define (install-polynomial-package)
+    (define (variable-order p)
+        (define (variable-order-inner p)
+            (let ((coeff-polys 
+                    (map (lambda (x) (coeff x))
+                        (fitler (lambda (x) (not (number? (coeff x))))
+                                (terms p)))))
+                (remove-duplicates
+                            (append (map (lambda (x) (variable x)) terms-with-poly-coeffs)
+                                    (map variable-order-inner coeff-polys))))
+        (cons (variable p) (variable-order-inner p))))
+    (define (term-variable-order term term-variable)
+        (if (polynomial? (coeff term))
+            (variable-order (make-polynomial variable (list term)))
+            (list term-variable)))
+    (define (variable-order-of-multiple . args)
+        (if (null? args)
+            '()
+            (remove-duplicates
+                (append (variable-order (car args))
+                        (variable-order-of-multiple (cdr args))))))
+    (define (swap-term-innards outer var)
+        (if (polynomial? (coeff outer))
+            (make-polynomial (variable (coeff outer))
+                            (map (lambda (inner)
+                                    (make-term (make-polynomial (variable outer)
+                                                                (list (make-term (coeff inner) (order outer))))
+                                                (order inner)))
+                                (terms (coeff outer))))
+            (error "Can't swap. No inner polynomial. SWAP-TERM-INNARDS"
+                    (list outer var))))
+    (define (apply-variable-order term term-variable order-to-apply)
+        (if (or (null? order-to-apply) (null? term))
+            term
+            (cond ((same-variable? term-variable (car order-to-apply))
+                    (make-term (order-terms (terms (coeff term)) (variable (coeff term)) (cdr order-to-apply))
+                                (order term)))
+                ((same-variable? (variable (coeff term)) (car order-to-apply))            
+                    (order-terms (swap-term-innards term term-variable) term-variable order-to-apply))
+                (else
+                    (order-terms (terms (coeff term)) (variable (coeff term)) order-to-apply)))))
+
+    (define (order-term term term-variable order-to-apply)
+        (if (polynomial? (coeff term))
+            (let ((term-order (filter (lambda (x) (list-contains? x order-to-apply))
+                                    (term-variable-order term term-variable))))
+                (apply-variable-order term term-variable term-order))
+            term))
+    (define (order-terms terms term-variable order-to-apply)
+        (if (null? terms)
+            '()
+            (add-terms (order-term (car term) term-variable order-to-apply)
+                        (order-terms (cdr terms) term-variable order-to-apply))))   
     (define (make-poly variable term-list)
         (cons variable term-list))
     (define (variable p) (car p))
@@ -87,11 +108,10 @@
     (define (dense->sparce p)
         (coerce-to-type p 'sparse))
     (define (add-poly p1 p2)
-        (if (same-variable? (variable p1) (variable p2))
-            (make-poly (variable p1)
-                    (add-terms (term-list p1) (term-list p2)))
-            (error "Polys not in same var: ADD-POLY" 
-                    (list p1 p2))))
+        (let ((var-order (variable-order-of-multiple p1 p2)))
+            (make-poly (car (var-order))
+                        (add-terms (order-terms (terms p1) (variable p1) var-order)
+                                    (order-terms (terms p2) (variable p2) var-order)))))
     (define (add-terms L1 L2)
         (cond ((empty-termlist? L1) L2)
             ((empty-termlist? L2) L1)
@@ -138,6 +158,7 @@
     (define (order term) (car term))
     (define (coeff term) (cadr term))
     (define (the-empty-termlist) '())
+    (define (polynomial? x) (eq? (type-tag x) 'polynomial))
     ;; interface to rest of the system
     (install-sparce-polynomials)
     (install-dense-polynomials)

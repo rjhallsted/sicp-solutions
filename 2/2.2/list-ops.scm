@@ -7,6 +7,14 @@
         #t
         (list-contains? item (cdr l)))))
 
+(define (remove-duplicates l)
+    (accumulate (lambda (item processed)
+                    (if (list-contains item processed)
+                        (cons item processed)
+                        processed))
+                '()
+                l))
+
 (define (accumulate op initial sequence)
   (if (null? sequence)
       initial

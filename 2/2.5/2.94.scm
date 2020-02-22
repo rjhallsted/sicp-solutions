@@ -1,5 +1,3 @@
-;;need to make it work for when the polynomials don't share a variable
-
 (load "../2.2/list-ops.scm")
 
 ;;general polynomial sort
@@ -109,7 +107,7 @@
         (coerce-to-type p 'dense))
     (define (dense->sparce p)
         (coerce-to-type p 'sparse))
-        (define (add-poly p1 p2)
+    (define (add-poly p1 p2)
         (let ((var-order (variable-order-of-multiple p1 p2)))
             (make-poly (car (var-order))
                         (add-terms (order-terms (term-list p1) (variable p1) var-order)
@@ -155,6 +153,33 @@
         (empty-termlist? p))
     (define (negate x)
         (mul-poly x (make-term 0 (- 1))))
+    (define (div-terms L1 L2)
+        (if (empty-termlist? L1)
+            (list (the-empty-termlist) (the-empty-termlist))
+            (let ((t1 (first-term L1))
+                (t2 (first-term L2)))
+                (if (> (order t2) (order t1))
+                    (list (the-empty-termlist) L1)
+                    (let ((new-c (div (coeff t1) (coeff t2)))
+                        (new-o (- (order t1) (order t2))))
+                        (let ((rest-of-result
+                                (div-terms
+                                    (sub-terms L1
+                                            (mul-term-by-all-terms (make-term new-o new-c) L2))
+                                    (rest-terms L2))))
+                            (list (adjoin-term (make-term new-o new-c)
+                                                (car rest-of-result))
+                                    (cadr rest-of-result)))))))))))))
+
+    (define (div-poly p1 p2)
+        (let ((var-order (variable-order-of-multiple p1 p2)))
+            (let ((result (div-terms
+                                (order-terms (term-list p1) (variable p1) var-order)
+                                (order-terms (term-list p2) (variable p2) var-order))))
+                (list (make-poly (variable p1) (car result))
+                        (make-poly (variable p1) (cadr result)))
+    (define (remainder-terms a b)
+        (cadr (div-terms a b)))
     (define (make-term order coeff) (list order coeff))
     (define (order term) (car term))
     (define (coeff term) (cadr term))
@@ -186,6 +211,7 @@
     (put 'make 'term
         (lambda (order coeff) (attach-tag 'term (make-term order-coeff))))
     (put '=zero? 'polynomial poly-equals-zero?)
+    (put 'remainder-terms '(polynomial polynomial) remainder-terms)
     'done)
 (define (make-term order coeff) ((get 'make 'term) order coeff))
 (define (make-polynomial var terms)

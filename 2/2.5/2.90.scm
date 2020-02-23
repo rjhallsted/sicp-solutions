@@ -1,3 +1,6 @@
+(load "../list-ops.scm")
+(load "../proc-tables.scm")
+
 (define (install-sparce-polynomials)
     (define (adjoin-term term term-list)
         (if (=zero? (coeff term))
@@ -29,7 +32,7 @@
     (define (rest-terms term-list) (cdr term-list))
     ;;interface
     (define (tag x) (attach-tag 'dense x))
-    (put 'adjoin-term '(term dense) (lambda t tl) (tag (adjoin-term t tl)))
+    (put 'adjoin-term '(term dense) (lambda (t tl) (tag (adjoin-term t tl))))
     (put 'first-term 'dense first-term)
     (put 'rest-terms 'dense (lambda (p) (tag (rest-terms p))))
     'done)
@@ -134,3 +137,10 @@
 (define (make-term order coeff) ((get 'make 'term) order coeff))
 (define (make-polynomial var terms)
     ((get 'make 'polynomial) var terms))
+
+(install-polynomial-package)
+
+
+(make-polynomial 'x (list 1 3 0 2 3))
+;;how to "make" a polynomial of either representation?
+;;I shouldn't have to care how its represented.

@@ -1,3 +1,5 @@
+(load "complex-numbers.scm")
+
 (define (add x y) (apply-generic 'add x y))
 (define (sub x y) (apply-generic 'sub x y))
 (define (mul x y) (apply-generic 'mul x y))
@@ -5,17 +7,16 @@
 
 (define (install-scheme-number-package)
     (put 'add '(scheme-number scheme-number)
-        (lambda (x y) (+ x y))))
+        (lambda (x y) (+ x y)))
     (put 'sub '(scheme-number scheme-number)
-        (lambda (x y) (- x y))))
+        (lambda (x y) (- x y)))
     (put 'mul '(scheme-number scheme-number)
-        (lambda (x y) (* x y))))
+        (lambda (x y) (* x y)))
     (put 'div '(scheme-number scheme-number)
-        (lambda (x y) (/ x y))))
+        (lambda (x y) (/ x y)))
     (put 'make 'scheme-number
         (lambda (x) x))
     'done)
-
 (define (make-scheme-number n)
     ((get 'make 'scheme-number) n))
 
@@ -57,7 +58,6 @@
 (define (make-rational n d)
     ((get 'make 'rational) n d))
 
-;;assumes rectangular and polar packages have been installed
 (define (install-complex-package)
     ;; imported procedures from rectangular and polar packages
     (define (make-from-real-imag x y)
@@ -82,6 +82,8 @@
     (define (magnitude z) (apply-generic 'magnitude z))
     (define (angle z) (apply-generic 'angle z))
     ;; interface to rest of the system
+    (install-rectangular-package)
+    (install-polar-package)
     (define (tag z) (attach-tag 'complex z))
     (put 'add '(complex complex)
         (lambda (z1 z2) (tag (add-complex z1 z2))))
@@ -102,34 +104,14 @@
 (define (make-complex-from-mag-ang r a)
     ((get 'make-from-mag-ang 'complex) r a))
 
-
-
 (define (apply-generic op . args)
     (let ((type-tags (map type-tag args)))
-        (let ((proc (get op type-tags))
+        (let ((proc (get op type-tags)))
             (if proc
                 (apply proc (map contents args))
                 (error 
                     "No method for these types: APPLY-GENERIC"
-                    (list op type-tags)))))))
-
-(define (attach-tag type-tag contents)
-    (if (number? contents)
-        contents
-        (cons type-tag contents)))
-(define (contents datum)
-    (if (number? datum)
-        datum
-        (if (pair? datum)
-            (cdr datum))
-            (error "Bad tagged datum: CONTENTS" datum)))
-(define (type-tag datum)
-    (if (number? datum)
-        'scheme-number
-        (if (pair? datum)
-            (car datum))
-            (error "Bad tagged datum: TYPE-TAG" datum)))
-
+                    (list op type-tags))))))
 (define (install-equ?)
     (define (rational-equ? a b)
         (and (= (numer a) (numer b))
@@ -137,30 +119,25 @@
     (define (complex-equ? a b)
         (and (equ? (real-part a) (real-part b))
              (equ? (imag-part a) (imag-part b))))
-    (define (convert-rational-to-scheme x)
-        (/ (numer x)
-           (denom x)))
-    (define (rational-scheme-equ? a b)
-        (= (convert-rational-to-scheme a))
-                   b))
-    (define (scheme-rational-equ? a b)
-        (rational-scheme-equ? b a))
-    (define (complex-other-equ? a b)
-        (if (not (equ? (imag-part? a) 0))
-            #f
-            (equ? (real-part a) b)))
-    (define (other-complex-equ? a b)
-        (complex-other-equ? b a))
-    (put 'equ '(scheme-number scheme-number) =)
-    (put 'equ '(rational rational) rational-equ?)
-    (put 'equ '(complex complex) complex-equ?)
-    (put 'equ '(rational scheme-number) rational-scheme-equ?)
-    (put 'equ '(scheme-number rational) scheme-rational-equ?)
-    (put 'equ '(complex scheme-number) complex-other-equ?)
-    (put 'equ '(complex rational) complex-other-equ?)
-    (put 'equ '(scheme-number complex) other-complex-equ?)
-    (put 'equ '(rational complex) other-complex-equ?)
+    (put 'equ? '(scheme-number scheme-number) =)
+    (put 'equ? '(rational rational) rational-equ?)
+    (put 'equ? '(complex complex) complex-equ?)
     'done)
+(define (equ? a b) (apply-generic 'equ? a b))
 
-(define (=zero? x)
-    (equ? x 0))
+(define (install-=zero?)
+    (define (rat-is-zero? x)
+        (equ? x (make-rational 0 1)))
+    (define (complex-is-zero? x)
+        (equ? x (make-complex-from-real-imag 0 0)))
+    (put '=zero? '(scheme-number) (lambda (x) (equ? x 0)))
+    (put '=zero? '(rational) rat-is-zero?)
+    (put '=zero? '(complex) complex-is-zero?)
+    'done)
+(define (=zero? x) (apply-generic '=zero? x))
+
+(install-scheme-number-package)
+(install-rational-package)
+(install-complex-package)
+(install-equ?)
+(install-=zero?)

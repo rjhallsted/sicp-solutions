@@ -115,8 +115,8 @@
     (define (mul-poly p1 p2)
         (if (same-variable? (variable p1) (variable p2))
             (make-poly (variable p1)
-                       (mul-terms (contents (term-list p1))
-                                  (coerce-to-type (contents (term-list p2))
+                       (mul-terms (term-list p1)
+                                  (coerce-to-type (term-list p2)
                                                   (type-tag (term-list p1)))))
             (error "Polys not in same var: MUL-POLY"
                 (list p1 p2))))
@@ -134,7 +134,7 @@
                                 (mul (coeff t1) (coeff t2)))
                     (mul-term-by-all-terms t1 (rest-terms L))))))
     (define (sub-poly p1 p2)
-        (add-poly p1 (negate L2)))
+        (add-poly p1 (negate p2)))
     (define (poly-equals-zero? p)
         (empty-termlist? p))
     (define (negate p)
@@ -204,5 +204,10 @@
 ;; (display (add dense-poly dense-poly)) (newline)
 ;; (display (add sparse-poly sparse-poly)) (newline)
 
-(display (add dense-poly sparse-poly)) (newline)
-(display (add sparse-poly dense-poly)) (newline)
+;; (display (add dense-poly sparse-poly)) (newline)
+;; (display (add sparse-poly dense-poly)) (newline)
+
+(display (mul dense-poly dense-poly)) (newline)
+(display (mul dense-poly sparse-poly)) (newline)
+(display (mul sparse-poly sparse-poly)) (newline)
+(display (mul sparse-poly dense-poly)) (newline)

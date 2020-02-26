@@ -5,6 +5,11 @@
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
 
+
+(define (variable? x) (symbol? x))
+(define (same-variable? v1 v2)
+    (and (variable? v1) (variable? v2) (eq? v1 v2)))
+
 (define (install-scheme-number-package)
     (put 'add '(scheme-number scheme-number)
         (lambda (x y) (+ x y)))

@@ -166,7 +166,7 @@
                        (sub-terms (term-list p1)
                                   (coerce-to-type (term-list p2)
                                                   (type-tag (term-list p1)))))
-            (error "Polys not in same var: MUL-POLY"
+            (error "Polys not in same var: SUB-POLY"
                 (list p1 p2))))
     (define (sub-terms L1 L2)
         (add-terms L1 (negate L2)))

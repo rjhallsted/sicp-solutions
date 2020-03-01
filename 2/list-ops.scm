@@ -9,7 +9,7 @@
 
 (define (remove-duplicates l)
     (accumulate (lambda (item processed)
-                    (if (list-contains item processed)
+                    (if (list-contains? item processed)
                         (cons item processed)
                         processed))
                 '()

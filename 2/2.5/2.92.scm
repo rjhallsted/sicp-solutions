@@ -304,12 +304,12 @@
 
 (define p1 (make-polynomial 'x (list (make-term 2 (make-polynomial 'y (list (make-term 3 1) (make-term 1 4))))
                                      (make-term 1 (make-polynomial 'y (list (make-term 2 2)))))))
-(define p2 (make-polynomial 'y (list (make-term 2 (make-polynomial 'x (list (make-term 3 1) (make-term 1 4))))
-                                     (make-term 1 (make-polynomial 'x (list (make-term 2 2)))))))
+(define p2 (make-polynomial 'y (list (make-term 2 (make-polynomial 'z (list (make-term 3 1) (make-term 1 4))))
+                                     (make-term 1 (make-polynomial 'z (list (make-term 2 2)))))))
 
-;; (display p1) (newline)
-;; (display p2) (newline)
 (display (add p1 p2)) (newline)
-(display (sub p1 p2)) (newline)
-(display (mul p1 p2)) (newline)
-(display (div p1 p2)) (newline)
+;; (display (sub p1 p2)) (newline)
+;; (display (mul p1 p2)) (newline)
+;; (display (div p1 p2)) (newline)
+
+;;inner coeffs of p2 not being retained. Need to fix that

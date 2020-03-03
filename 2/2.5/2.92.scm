@@ -97,7 +97,6 @@
                            (make-polynomial term-var (list (make-term (order term) (coeff inner))))))
             (term-list->pure-terms (term-list (contents (coeff term))))))
     (define (convert-to-term orig-var terms)
-        (display-these "convert-to-term" orig-var terms)
         (if (null? terms)
             (make-term 0 0)
             (make-term 0 (make-polynomial orig-var terms))))
@@ -123,7 +122,6 @@
                                             (and (polynomial? (coeff x))
                                                 (same-variable? var (variable (contents (coeff x))))))
                                         (term-list p))))
-                (display-these "coerce-poly-to-var" (term-list p) swappable)
                 (contents
                     (make-polynomial var
                                 (sort-terms (append (flatmap (lambda (term) (swap-term-innards term (variable p)))
@@ -304,14 +302,12 @@
 
 (install-polynomial-package)
 
-(define p1 (make-polynomial 'x (list (make-term 2 (make-polynomial 'y (list (make-term 3 1) (make-term 1 4))))
-                                     (make-term 1 (make-polynomial 'y (list (make-term 2 2)))))))
-(define p2 (make-polynomial 'y (list (make-term 2 (make-polynomial 'z (list (make-term 3 1) (make-term 1 4))))
-                                     (make-term 1 (make-polynomial 'z (list (make-term 2 2)))))))
+;; (define p1 (make-polynomial 'x (list (make-term 2 (make-polynomial 'y (list (make-term 3 1) (make-term 1 4))))
+;;                                      (make-term 1 (make-polynomial 'y (list (make-term 2 2)))))))
+;; (define p2 (make-polynomial 'y (list (make-term 2 (make-polynomial 'z (list (make-term 3 1) (make-term 1 4))))
+;;                                      (make-term 1 (make-polynomial 'z (list (make-term 2 2)))))))
 
-(display (add p1 p2)) (newline)
+;; (display (add p1 p2)) (newline)
 ;; (display (sub p1 p2)) (newline)
 ;; (display (mul p1 p2)) (newline)
 ;; (display (div p1 p2)) (newline)
-
-;;inner coeffs of p2 not being retained. Need to fix that

@@ -97,6 +97,7 @@
                            (make-polynomial term-var (list (make-term (order term) (coeff inner))))))
             (term-list->pure-terms (term-list (contents (coeff term))))))
     (define (convert-to-term orig-var terms)
+        (display-these "convert-to-term" orig-var terms)
         (if (null? terms)
             (make-term 0 0)
             (make-term 0 (make-polynomial orig-var terms))))
@@ -122,6 +123,7 @@
                                             (and (polynomial? (coeff x))
                                                 (same-variable? var (variable (contents (coeff x))))))
                                         (term-list p))))
+                (display-these "coerce-poly-to-var" (term-list p) swappable)
                 (contents
                     (make-polynomial var
                                 (sort-terms (append (flatmap (lambda (term) (swap-term-innards term (variable p)))

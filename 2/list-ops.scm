@@ -2,7 +2,7 @@
 
 (define (list-contains? item l)
   (if (null? l)
-      #t
+      #f
     (if (equal? item (car l))
         #t
         (list-contains? item (cdr l)))))

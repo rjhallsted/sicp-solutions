@@ -28,11 +28,13 @@
     ;; internal procedures
     (define (numer x) (car x))
     (define (denom x) (cdr x))
-    ;; (define (make-rat n d)
-    ;;     (let ((g (gcd n d)))
-    ;;         (cons (/ n g) (/ d g))))
     (define (make-rat n d)
-        (cons n d))
+        (let ((g (greatest-common-divisor n d)))
+            (cons (div n g) (div d g))))
+    (define (gcd a b)
+        (if (= b 0)
+            a
+            (gcd b (remainder a b))))
     (define (add-rat x y)
         (make-rat (add (mul (numer x) (denom y))
                        (mul (numer y) (denom x)))
@@ -57,12 +59,13 @@
         (lambda (x y) (tag (mul-rat x y))))
     (put 'div '(rational rational)
         (lambda (x y) (tag (div-rat x y))))
-
+    (put 'greatest-common-divisor '(scheme-number scheme-number) gcd)
     (put 'make 'rational
         (lambda (n d) (tag (make-rat n d))))
     'done)
 (define (make-rational n d)
     ((get 'make 'rational) n d))
+(define (greatest-common-divisor a b) (apply-generic 'greatest-common-divisor a b))
 
 (define (install-complex-package)
     ;; imported procedures from rectangular and polar packages

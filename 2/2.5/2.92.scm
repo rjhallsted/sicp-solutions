@@ -208,7 +208,7 @@
                                 (div-terms
                                     (sub-terms L1
                                                (mul-term-by-all-terms (make-term new-o new-c) L2))
-                                    (rest-terms L2))))
+                                    L2)))
                             (list (adjoin-term (make-term new-o new-c)
                                                (car rest-of-result))
                                   (cadr rest-of-result))))))))

@@ -65,7 +65,8 @@
     'done)
 (define (make-rational n d)
     ((get 'make 'rational) n d))
-(define (greatest-common-divisor a b) (apply-generic 'greatest-common-divisor a b))
+(define (greatest-common-divisor a b)
+    (apply-generic 'greatest-common-divisor a b))
 
 (define (install-complex-package)
     ;; imported procedures from rectangular and polar packages

@@ -1,5 +1,14 @@
 (load "complex-numbers.scm")
 
+(define (display-these . args)
+    (define (display-these-inner args)
+        (if (null? args)
+            (newline)
+            (let ()
+                (display (car args)) (display " ")
+                (display-these-inner (cdr args)))))
+    (display-these-inner args))
+
 (define (add x y) (apply-generic 'add x y))
 (define (sub x y) (apply-generic 'sub x y))
 (define (mul x y) (apply-generic 'mul x y))
@@ -29,8 +38,11 @@
     (define (numer x) (car x))
     (define (denom x) (cdr x))
     (define (make-rat n d)
-        (let ((g (greatest-common-divisor n d)))
-            (cons (div n g) (div d g))))
+        (let ((reduction (reduce n d)))
+            (cons (car reduction) (cadr reduction))))
+    (define (reduce-integers n d)
+        (let ((g (gcd n d)))
+            (list (/ n g) (/ d g))))
     (define (gcd a b)
         (if (= b 0)
             a
@@ -62,6 +74,7 @@
     (put 'greatest-common-divisor '(scheme-number scheme-number) gcd)
     (put 'make 'rational
         (lambda (n d) (tag (make-rat n d))))
+    (put 'reduce '(scheme-number scheme-number) reduce-integers)
     'done)
 (define (make-rational n d)
     ((get 'make 'rational) n d))
@@ -145,6 +158,9 @@
     (put '=zero? '(complex) complex-is-zero?)
     'done)
 (define (=zero? x) (apply-generic '=zero? x))
+
+(define (reduce a b)
+    (apply-generic 'reduce a b))
 
 (install-scheme-number-package)
 (install-rational-package)

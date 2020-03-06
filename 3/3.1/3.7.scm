@@ -1,0 +1,31 @@
+(define (make-account balance account-password)
+    (define (withdraw amount)
+        (if (>= balance amount)
+            (begin (set! balance (- balance amount))
+                   balance)
+            "Insufficient funds"))
+    (define (deposit amount)
+        (set! balance (+ balance amount))
+        balance)
+    (define (dispatch given-password m)
+        (if (eq? given-password account-password)
+            (cond ((eq? m 'withdraw) withdraw)
+                ((eq? m 'deposit) deposit)
+                (else (error "Unknown request: MAKE-ACCOUNT"
+                            m)))
+            (lambda (x) "Incorrect password")))
+    dispatch)
+
+(define (make-joint acc existing-password new-password)
+    (define (dispatch given-password m)
+        (if (eq? given-password new-password)
+            (acc existing-password m)
+            "Incorrect password"))
+    dispatch)
+
+(define peter-acc (make-account 100 'open-sesame))
+(define paul-acc (make-joint peter-acc 'open-sesame 'rosebud))
+
+(display ((peter-acc 'open-sesame 'deposit) 10)) (newline)
+(display ((paul-acc 'rosebud 'withdraw) 20)) (newline)
+

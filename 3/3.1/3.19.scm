@@ -1,10 +1,16 @@
 (define (is-cycled? x)
-    (define (is-cycled-inner first-pair x)
-        (cond ((null? x) #f)
-            ((eq? x first-pair) #t)
-            (else (is-cycled-inner first-pair (cdr x)))))
-    (is-cycled-inner x (cdr x)))g
-
+    (define (found-yet? pair steps)
+        (define (found-yet-inner pair steps left-to-check)
+            (cond ((or (= 0 steps) (null? left-to-check)) #f)
+                ((eq? pair left-to-check) #t)
+                (else (found-yet-inner pair (- steps 1) (cdr left-to-check)))))
+        (found-yet-inner pair steps x))
+    (define (is-cycled-inner items steps-so-far)
+        (cond ((null? items) #f)
+            ((found-yet? items steps-so-far) #t)
+            (else (is-cycled-inner (cdr items) (+ steps-so-far 1)))))
+    (is-cycled-inner x 0))
+    
 (define (last-pair x)
     (if (null? (cdr x))
         x
@@ -17,3 +23,6 @@
 (display (is-cycled? d)) (newline)
 (make-cycle d)
 (display (is-cycled? d)) (newline)
+
+(define e (cons 'x d))
+(display (is-cycled? e)) (newline)

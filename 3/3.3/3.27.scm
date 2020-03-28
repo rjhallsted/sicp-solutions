@@ -1,0 +1,3 @@
+;; memo-fib computes the nth fibonacci number in an amount of steps proportional to n. This is due to memoization. In the first recursive call (n-1), all the the numbers up to n-1 calculated. The second recursive call (n-2) only needs to read the table for the result then. Meaning each number only needs to be calculated once.
+
+;; This scheme would not work if we simply defined memo-fib as (memoize fib). fib's internal recursive calls are to itself. In this case, the major benefits of memoization only come when the recursive calls are to the memoized procedure

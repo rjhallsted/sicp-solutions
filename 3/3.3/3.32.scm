@@ -1,0 +1,3 @@
+The circuit goes from 1,0 to 1,1. This registers an action to change the output of the and-gate to 1 after the delay. The next change is from 1,1 to 0,1. This registers an action to change the output to 0 after the delay.
+Using first-in-first-out, the output will change to 1 and then to 0, which is the desired state.
+Using last-in-first-out, the output will be set to 0 and then to 1, breaking the and-gate, and leaving the output incorrect relative to the inputs.

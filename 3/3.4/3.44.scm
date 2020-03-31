@@ -1,0 +1,4 @@
+;In the above implementation of make-account, it is up to the user to serialize the transaction. Ben's solution never actually serializes the transactions
+
+;If make-account is the version that includes serialization within itself, then this version of transfer is acceptable.
+;;The main difference between transfer and exchange is that in exchange, the value of each account is dependent on the other, while in transfer, it's not. In exchange, the procedures must happen in a certain order, while in transfer the order does not matter, as the logic for one account never touches the logic for the other.

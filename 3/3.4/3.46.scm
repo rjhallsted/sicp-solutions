@@ -1,0 +1,1 @@
+;Basically, if each process checks the value of cell, finds it to be true, one after the other, and then they both proceed to set it to true and return false, making so that it returns false to each process, allowing each process to acquire it.

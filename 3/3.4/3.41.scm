@@ -1,0 +1,3 @@
+;Within this module, nothing is at risk if the balance isn't serialized. However, while meeting the requirements for concurrency (since accessing the balance doesn't change it), it could cause problems in the wider system.
+
+;If, in parallel, you were to make a deposit and report the balance, you could end up reporting the pre-deposit balance (a process which you should definitely serialize in an asynchronous environment)

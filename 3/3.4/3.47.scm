@@ -22,13 +22,16 @@
 (define (make-sempahore n)
     (let ((mutexes-left n)
           (mutexes (map (lambda (x) (make-mutex)) (enumerate 0 n))))
+        (define (found-and-set-mutex?) ;;for this to work, this function needs to be an atomic operation
+            (if (> mutexes-left 0)
+                (begin
+                    ((list-ref mutexes (- n mutexes-left)) 'acquire)
+                    (set! mutexes-left (- mutexes-left 1))
+                    true)
+                false))
         (define (the-semaphore m)
             (cond ((eq? m 'acquire)
-                    (if (> mutexes-left 0)
-                        (let ((to-acquire (- mutexes-left 1)))
-                            (begin
-                                ((list-ref mutexes (- n to-acquire)) 'acquire)
-                                (set! mutexes-left (- mutexes-left 1))))
+                    (if (not (found-and-set-mutex?))
                         (the-semaphore 'acquire)))
                 ((eq? m 'release)
                     (if (< mutexes-left n)

@@ -1,0 +1,1 @@
+;;Even if the resources are numbered, a process could get resource 3, and then determine that is also needs access to resources 1,2, and 6. Meanwhile another process has locked resource 1. This results in deadlock. The lowest-numbered-resource method only works when a process knows all of the resources it will need ahead of time.

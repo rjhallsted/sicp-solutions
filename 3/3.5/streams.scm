@@ -29,3 +29,25 @@
     (cons-stream 1 (add-streams ones integers)))
 (define ones
     (cons-stream 1 ones))
+
+
+(define (first-x-of-stream stream x)
+    (if (> x 0)
+        (cons-stream (stream-car stream)
+            (first-x-of-stream (stream-cdr stream) (- x 1)))
+        the-empty-stream))
+
+(define (display-first-x-of-stream s x)
+    (display-stream (first-x-of-stream s x)))
+
+(define (integrate-series series)
+    (div-streams series integers))
+
+(define cosine-series (cons-stream 1 (integrate-series (scale-stream sine-series (- 1)))))
+(define sine-series (cons-stream 0 (integrate-series cosine-series)))
+
+
+(define (mul-series s1 s2)
+    (cons-stream (* (stream-car s1) (stream-car s2))
+                 (add-streams (scale-stream (stream-cdr s1) (stream-car s2))
+                              (mul-series (stream-cdr s2) s1))))

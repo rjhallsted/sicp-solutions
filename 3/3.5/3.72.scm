@@ -12,7 +12,7 @@
               (c (stream-car (stream-cdr (stream-cdr s)))))
             (if (and (= (weight a) (weight b)) (= (weight b) (weight c)))
                 (cons-stream (list (weight a) a b c)
-                            (r-pairs (stream-cdr (stream-cdr s))))
+                            (r-pairs (stream-cdr (stream-cdr (stream-cdr s)))))
                 (r-pairs (stream-cdr s)))))
     (r-pairs ordered-pairs))
 

@@ -1,0 +1,20 @@
+(load "streams.scm")
+
+(define (3way-square-sums)
+    (define (sum-of-squares a b)
+        (+ (square a) (square b)))
+    (define (weight x)
+        (sum-of-squares (car x) (cadr x)))
+    (define ordered-pairs (weighted-pairs integers integers weight))
+    (define (r-pairs s)
+        (let ((a (stream-car s))
+              (b (stream-car (stream-cdr s)))
+              (c (stream-car (stream-cdr (stream-cdr s)))))
+            (if (and (= (weight a) (weight b)) (= (weight b) (weight c)))
+                (cons-stream (list (weight a) a b c)
+                            (r-pairs (stream-cdr (stream-cdr s))))
+                (r-pairs (stream-cdr s)))))
+    (r-pairs ordered-pairs))
+
+(display-first-x-of-stream (3way-square-sums) 10)
+

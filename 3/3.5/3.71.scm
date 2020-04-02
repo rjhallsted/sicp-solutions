@@ -1,0 +1,17 @@
+(load "streams.scm")
+
+(define (ramanujan-numbers)
+    (define (sum-of-cubes a b)
+        (+ (* a a a) (* b b b)))
+    (define (weight x)
+        (sum-of-cubes (car x) (cadr x)))
+    (define ordered-pairs (weighted-pairs integers integers weight))
+    (define (r-pairs s)
+        (let ((w1 (weight (stream-car s)))
+              (w2 (weight (stream-car (stream-cdr s)))))
+            (if (= w1 w2)
+                (cons-stream w1 (r-pairs (stream-cdr (stream-cdr s))))
+                (r-pairs (stream-cdr s)))))
+    (r-pairs ordered-pairs))
+
+(display-first-x-of-stream (ramanujan-numbers) 6)

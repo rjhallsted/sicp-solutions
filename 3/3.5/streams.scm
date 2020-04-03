@@ -87,3 +87,11 @@
             (stream-map (lambda (x) (list (stream-car s) x)) (stream-cdr t))
             (weighted-pairs (stream-cdr s) (stream-cdr t) weight)
             weight)))
+
+(define (integral delayed-integrand initial-value dt)
+    (define int
+        (cons-stream
+            initial-value
+            (let ((integrand (force delayed-integrand)))
+                (add-streams (scale-stream integrand dt) int))))
+    int)

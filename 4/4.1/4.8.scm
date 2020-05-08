@@ -194,7 +194,7 @@
                     (cons (let-name exp) (let-variables exp))
                     proc)
               (cons (let-name exp) (let-values exp)))))
-(define (let-has-name? exp) (pair? (cadr exp)))
+(define (let-has-name? exp) (not (pair? (cadr exp))))
 (define (let-assignments exp)
     (if (let-has-name? exp)
         (caddr exp)

@@ -186,7 +186,7 @@
 (define (let? exp) (tagged-list? exp 'let))
 (define (let->combination exp)
     (let ((proc (make-lambda (let-variables exp)
-                             (let-body exp)))))
+                             (sequence->exp (let-body exp))))))
     (if (let-has-name? exp)
         (cons proc (let-values exp))
         (list 'begin

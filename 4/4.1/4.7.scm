@@ -186,7 +186,7 @@
 (define (let? exp) (tagged-list? exp 'let))
 (define (let->combination exp)
     (cons (make-lambda (let-variables exp)
-                       (let-body exp))
+                       (sequence->exp (let-body exp)))
           (let-values exp)))
 (define (let-assignments exp) (cadr exp))
 (define (let-variables exp)

@@ -156,6 +156,39 @@
     (define (first-assignment assignments) (car assignments))
     (define (rest-assignments assignments) (cdr assignments))
 
+    ;while
+    (define (eval-while ops env)
+        (eval (transform-while (while-predicate ops) (while-proc ops))))
+    (define (transform-while predicate proc)
+        (make-if predicate
+            (make-begin (list proc
+                              (transform-while predicate proc)))
+            'false))
+    (define (while-predicate ops) (car ops))
+    (define (while-proc ops) (cadr ops))
+
+    ;until
+    (define (eval-until ops env)
+        (eval (transform-while (lambda () (not ((while-predicate ops))))
+                               (while-proc ops))))
+
+    ;for
+    (define (eval-for ops env)
+        (eval (make-begin
+                    (for->sequence
+                        (for-proc ops) 
+                        (enumerate-interval (for-interval-start ops)
+                                            (for-interval-end ops))))))
+    (define (for-proc ops) (caddr ops))
+    (define (for-interval-start ops) (car ops))
+    (define (for-interval-end ops) (cadr ops))
+    (define (for->sequence proc interval)
+        (if (null? interval)
+            '()
+            (cons
+                (list proc (car interval))
+                (for-sequence proc (cdr interval)))))
+
     ;;install procedures
     (put 'eval 'quote text-of-quote)
     (put 'eval 'set! eval-assignment)
@@ -168,6 +201,9 @@
     (put 'eval 'or eval-or)
     (put 'eval 'let eval-let)
     (put 'eval 'let* eval-let*)
+    (put 'eval 'while eval-while)
+    (put 'eval 'until eval-until)
+    (put 'eval 'for eval-for)
     'ok)
 
 (install-eval-types)
@@ -215,4 +251,3 @@
         '()
         (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
-

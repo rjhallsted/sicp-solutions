@@ -1,3 +1,5 @@
+(load "../../core-func.scm")
+
 (define (install-eval-types)
     (define (eval-sequence exps env)
         (cond ((last-exp? exps)
@@ -82,8 +84,7 @@
     (define (expand-clauses clauses)
         (if (null? clauses)
             'false
-            (let ((first (first-exp clauses)
-                (rest (rest-exps clauses))))
+            (let ((first (first-exp clauses)) (rest (rest-exps clauses)))
                 (if (cond-else-clause? first)
                     (if (null? rest)
                         (sequence->exp (cond-actions first))
@@ -102,32 +103,32 @@
 
     ;logical operators\
     (define (eval-and clauses env)
-    (let ((result (eval (first-exp clauses) env)))
-        (if (not (true? result))
-            false
-            (if (last-exp? clauses)
-                result
-                (eval-and-clauses (rest-exps clauses))))))
-    (define (eval-or clauses env)
-    (let ((result (eval (first-exp clauses) env)))
-        (if (true? result)
-            result
-            (if (last-exp? clauses)
+        (let ((result (eval (first-exp clauses) env)))
+            (if (not (true? result))
                 false
-                (eval-or-clauses (rest-exps clauses))))))
+                (if (last-exp? clauses)
+                    result
+                    (eval-and-clauses (rest-exps clauses))))))
+    (define (eval-or clauses env)
+        (let ((result (eval (first-exp clauses) env)))
+            (if (true? result)
+                result
+                (if (last-exp? clauses)
+                    false
+                    (eval-or-clauses (rest-exps clauses))))))
 
     ;let
     (define (eval-let ops env) (eval (let->combination ops) env))
     (define (let->combination ops)
         (let ((proc (make-lambda (let-variables ops)
-                                (sequence->exp (let-body ops))))))
-        (if (let-has-name? ops)
-            (cons proc (let-values ops))
-            (list 'begin
-                (list 'define
-                        (cons (let-name ops) (let-variables ops))
-                        proc)
-                (cons (let-name ops) (let-values ops)))))
+                                (sequence->exp (let-body ops)))))
+            (if (let-has-name? ops)
+                (cons proc (let-values ops))
+                (list 'begin
+                    (list 'define
+                            (cons (let-name ops) (let-variables ops))
+                            proc)
+                    (cons (let-name ops) (let-values ops))))))
     (define (let-has-name? ops) (not (pair? (car ops))))
     (define (let-assignments ops)
         (if (let-has-name? ops)

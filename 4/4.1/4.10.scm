@@ -1,30 +1,29 @@
 (load "../../core-func.scm")
 
-(define (eval-sequence exps env)
-    (cond ((last-exp? exps)
-            (eval (first-exp exps) env))
-        (else
-            (eval (first-exp exps) env)
-            (eval-sequence (rest-exps exps) env))))
-(define (last-exp? seq) (null? (cdr seq)))
-(define (first-exp seq) (car seq))
-(define (rest-exps seq) (cdr seq))
-
-(define (sequence->exp seq)
-    (cond ((null? seq) seq)
-        ((last-exp? seq) (first-exp seq))
-        (else (make-begin seq))))
-(define (make-begin seq) (cons 'begin seq))
-(define (make-lambda parameters body)
-    (cons 'lambda (cons parameters body)))
-(define (make-if predicate consequent alternative)
-    (list 'if predicate consequent alternative))
-
-;logic
-(define (true? x) (not (false? x)))
-(define (false x) (eq? x false))
+;; changed lambda to lm
+;; changed define to def
 
 (define (install-eval-types)
+    (define (eval-sequence exps env)
+        (cond ((last-exp? exps)
+                (eval (first-exp exps) env))
+            (else
+                (eval (first-exp exps) env)
+                (eval-sequence (rest-exps exps) env))))
+    (define (last-exp? seq) (null? (cdr seq)))
+    (define (first-exp seq) (car seq))
+    (define (rest-exps seq) (cdr seq))
+    
+    (define (sequence->exp seq)
+        (cond ((null? seq) seq)
+            ((last-exp? seq) (first-exp seq))
+            (else (make-begin seq))))
+    (define (make-begin seq) (cons 'begin seq))
+    (define (make-lambda parameters body)
+        (cons 'lm (cons parameters body)))
+    (define (make-if predicate consequent alternative)
+        (list 'if predicate consequent alternative))
+
     ;quote
     (define (text-of-quote ops env)
         ops)
@@ -54,7 +53,7 @@
                             env)
         'ok)
     (define (make-define name vars proc)
-        (list 'define name vars proc))
+        (list 'def name vars proc))
 
     ;lambda
     (define (lambda-parameters ops) (car ops))
@@ -199,8 +198,8 @@
     ;;install procedures
     (put 'eval 'quote text-of-quote)
     (put 'eval 'set! eval-assignment)
-    (put 'eval 'define eval-definition)
-    (put 'eval 'lambda eval-lambda)
+    (put 'eval 'def eval-definition)
+    (put 'eval 'lm eval-lambda)
     (put 'eval 'if eval-if)
     (put 'eval 'begin eval-begin)
     (put 'eval 'cond eval-cond)
@@ -258,14 +257,3 @@
         '()
         (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
-
-(define (make-procedure parameters body env)
-    (list 'procedure parameters body env))
-(define (compound-procedure? p)
-    (tagged-list? p 'procedure))
-(define (procedure-parameters p) (cadr p))
-(define (procedure-body p) (caddr p))
-(define (procedure-environment p) (cadddr p))
-
-(define (tagged-list? x tag)
-    (eq? (car x) tag))

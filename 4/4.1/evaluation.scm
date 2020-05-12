@@ -26,8 +26,7 @@
 
 (define (install-eval-types)
     ;quote
-    (define (text-of-quote ops env)
-        ops)
+    (define (text-of-quote ops env) (car ops))
 
     ;assignment
     (define (assignment-variable ops) (car ops))
@@ -419,5 +418,5 @@
 
 
 (define the-global-environment (setup-environment))
-;; (driver-loop)
+(driver-loop)
 

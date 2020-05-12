@@ -40,11 +40,11 @@
 
     ;definition
     (define (definition-variable ops)
-        (if (symbol? car ops)
+        (if (symbol? (car ops))
             (car ops)
-            (cadr ops)))
+            (caar ops)))
     (define (definition-value ops)
-        (if (symbol? car ops)
+        (if (symbol? (car ops))
             (cadr ops)
             (make-lambda (cdar ops)
                         (cdr ops))))
@@ -225,6 +225,8 @@
                                 (list-of-values (operands exp) env)))
                     (else (error "Unkown expression type: EVAL" exp)))))))
 
+(define apply-in-underlying-scheme apply)
+
 (define (apply procedure arguments)
     (cond ((primitive-procedure? procedure)
             (apply-primitive-procedure procedure arguments))
@@ -254,7 +256,7 @@
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
 (define (list-of-values exps env)
-    (if (no-operands? exp)
+    (if (no-operands? exps)
         '()
         (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
@@ -268,7 +270,7 @@
 (define (procedure-environment p) (cadddr p))
 
 (define (tagged-list? x tag)
-    (eq? (car x) tag))
+    (and (pair? x) (eq? (car x) tag)))
 
 
 ;environment
@@ -291,10 +293,10 @@
             (error "Too few arguments supplied" vars vals))))
 
 
-(define (make-scanner null-proc eq-proc)
+(define (make-scanner null-proc eq-proc test-against)
     (define (scan vars vals)
         (cond ((null? vars) (null-proc))
-            ((eq? var (car vars)) (eq-proc vals))
+            ((eq? test-against (car vars)) (eq-proc vals))
             (else (scan (cdr vars) (cdr vals)))))
     scan)
 
@@ -309,18 +311,20 @@
     (define (env-loop env)
         (let ((scan (make-scanner
                         (lambda () (env-loop (enclosing-environment env)))
-                        (lambda (vals) (car vals)))))
+                        (lambda (vals) (car vals))
+                        var)))
             (check-env-then-scan
                     scan
                     env
-                    (lambda () (error "Unbound variable" var)))))
+                    (lambda () (error "Unbound variable:" var)))))
     (env-loop env))
 
 (define (set-variable-value! var val env)
     (define (env-loop env)
         (let ((scan (make-scanner
                         (lambda () (env-loop (enclosing-environment env)))
-                        (lambda (vals) (set-car! vals val)))))
+                        (lambda (vals) (set-car! vals val))
+                        var)))
             (check-env-then-scan
                     scan
                     env
@@ -330,8 +334,90 @@
 (define (define-variable! var val env)
     (let ((scan (make-scanner
                     (lambda () (add-binding-to-frame! var val (first-frame env)))
-                    (lambda (vals) (set-car! vals val)))))
+                    (lambda (vals) (set-car! vals val))
+                    var)))
         (check-env-then-scan
                 scan
                 env
                 (lambda () (error "Failed to define variable" var)))))
+
+(define (make-unbound! var env)
+    (define (already-unbound)
+        (error "Variable is already unbound: UNBIND" var))
+    (let ((scan (make-scanner
+                    already-unbound
+                    (lambda (vars vals) 
+                        (set-car! vars (cdr vars))
+                        (set-car! vals (cdr vals)))
+                        var)))
+        (check-env-then-scan
+            scan
+            env
+            already-unbound)))
+
+(define (setup-environment)
+    (let ((initial-env
+                (extend-environment (primitive-procedure-names)
+                                    (primitive-procedure-objects)
+                                    the-empty-environment)))
+        (define-variable! 'true true initial-env)
+        (define-variable! 'false false initial-env)
+        initial-env))
+
+(define (primitive-procedure? proc)
+    (tagged-list? proc 'primitive))
+(define (primitive-implementation proc) (cadr proc))
+
+(define primitive-procedures
+    (list (list 'car car)
+          (list 'cdr cdr)
+          (list 'cons cons)
+          (list 'null? null?)
+          (list '+ +)
+          (list '- -)
+          (list '/ /)
+          (list '* *)
+          (list '> >)
+          (list '< <)
+          (list '= =)
+          (list '<= <=)
+          (list '>= >=)
+          ))
+(define (primitive-procedure-names)
+    (map car primitive-procedures))
+(define (primitive-procedure-objects)
+    (map (lambda (proc) (list 'primitive (cadr proc)))
+         primitive-procedures))
+
+(define (apply-primitive-procedure proc args)
+    (apply-in-underlying-scheme (primitive-implementation proc)
+                                args))
+
+(define input-prompt ";;; M-eval input:")
+(define output-prompt ";;; M-eval value:")
+(define (driver-loop)
+    (prompt-for-input input-prompt)
+    (let ((input (read)))
+        (let ((output (eval input the-global-environment)))
+            (announce-output output-prompt)
+            (user-print output)))
+    (driver-loop))
+(define (prompt-for-input string)
+    (newline)
+    (newline)
+    (display string) (newline))
+(define (announce-output string)
+    (newline)
+    (display string) (newline))
+(define (user-print object)
+    (if (compound-procedure? object)
+        (display (list 'compound-procedure
+                        (procedure-parameters object)
+                        (procedure-body object)
+                        '<procedure-env>))
+        (display object)))
+
+
+(define the-global-environment (setup-environment))
+;; (driver-loop)
+

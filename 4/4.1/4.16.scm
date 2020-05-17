@@ -14,15 +14,22 @@
     (cond ((null? seq) seq)
         ((last-exp? seq) (first-exp seq))
         (else (make-begin seq))))
-(define (make-begin seq) (cons 'begin seq))
-(define (make-lambda parameters body)
-    (cons 'lambda (cons parameters body)))
-(define (make-if predicate consequent alternative)
-    (list 'if predicate consequent alternative))
-
 ;logic
 (define (true? x) (not (false? x)))
 (define (false? x) (eq? x false))
+
+(define (pair-merge-lists l1 l2)
+    (if (null? l1)
+        '()
+        (cons (list (car l1) (car l2))
+              (pair-merge-lists (cdr l1) (cdr l2)))))
+
+;makes (defined in install-eval-types)
+(define make-begin (get 'make 'begin))
+(define make-lambda (get 'make 'lambda))
+(define make-if (get 'make 'if))
+(define make-procedure (get 'make 'procedure))
+(define make-let (get 'make 'let))
 
 (define (install-eval-types)
     ;quote
@@ -62,6 +69,9 @@
         (make-procedure (lambda-parameters ops)
                         (lambda-body ops)
                         env))
+    
+    (define (make-lambda parameters body)
+        (cons 'lambda (cons parameters body)))
 
     ;if
     (define (if-predicate ops) (car ops))
@@ -75,9 +85,14 @@
             (eval (if-consequent ops) env)
             (eval (if-alternative ops) env)))
 
+    (define (make-if predicate consequent alternative)
+        (list 'if predicate consequent alternative))
+
+
     ;begin
     (define (eval-begin ops env)
         (eval-sequence ops env))
+    (define (make-begin seq) (cons 'begin seq))
 
     ;cond
     (define (cond-clauses ops) ops)
@@ -106,7 +121,7 @@
     (define (eval-cond ops env) (eval (cond->if ops) env))
     
 
-    ;logical operators\
+    ;logical operators
     (define (eval-and clauses env)
         (let ((result (eval (first-exp clauses) env)))
             (if (not (true? result))
@@ -148,6 +163,9 @@
         (if (let-has-name? ops)
             (cddr ops)
             (cdr ops)))
+
+    (define (make-let bindings body)
+        (cons 'let (cons bindings body)))
 
     ;let*
     (define (eval-let* ops env) (eval (let*->nested-lets ops) env))
@@ -196,6 +214,48 @@
                 (list proc (car interval))
                 (for-sequence proc (cdr interval)))))
 
+
+    ;procedure (the accessors must live outside of this package because they are used as part of apply)
+    (define (make-procedure parameters body env)
+        (if (has-defines? body)
+            (list 'procedure parameters (scan-out-defines body) env)
+            (list 'procedure parameters body env)))
+    (define (has-defines? body)
+        (> (length (body-defines body)) 0))
+    (define (scan-out-defines body)
+        (define (join-vars-and-values vars vals)
+            (cond ((< (length vars) (length vals))
+                    (error "Too many values supplied: SCAN-OUT-DEFINES" vars vals))
+                ((> (length vars) (length vals))
+                    (error "Too many variables supplied: SCAN-OUT-DEFINES" vars vals))
+                (else
+                    (pair-merge-lists vars vals))))
+        (let ((vars (body-define-variables body))
+              (vals (body-define-values body)))
+            (list (make-let (join-vars-and-values
+                                vars
+                                (map (lambda (x) '*unassigned*) vals))
+                    (append (make-sets vars vals)
+                            (remove-defines body))))))
+    (define (body-define-variables body)
+        (map (lambda (exp) (definition-variable (operands exp))) (body-defines body)))
+    (define (body-define-values body)
+        (map (lambda (exp) (definition-value (operands exp))) (body-defines body)))
+    (define (definition? exp)
+        (tagged-list? exp 'define))
+    (define (body-defines body)
+        (filter definition? body))
+    (define (make-sets vars vals)
+        (cond ((< (length vars) (length vals))
+                (error "Too many values supplied: MAKE-SETS" vars vals))
+            ((> (length vars) (length vals))
+                (error "Too many variables supplied: MAKE-SETS" vars vals))
+            (else
+                (map (lambda (x) (cons 'set! x)) (pair-merge-lists vars vals)))))
+    (define (remove-defines body)
+        (filter (lambda (exp) (not (definition? exp))) body))
+    
+
     ;;install procedures
     (put 'eval 'quote text-of-quote)
     (put 'eval 'set! eval-assignment)
@@ -211,12 +271,19 @@
     (put 'eval 'while eval-while)
     (put 'eval 'until eval-until)
     (put 'eval 'for eval-for)
+
+    (put 'make 'begin make-begin)
+    (put 'make 'lambda make-lambda)
+    (put 'make 'if make-if)
+    (put 'make 'procedure make-procedure)
+    (put 'make 'let make-let)
     'ok)
+
+
+(define apply-in-underlying-scheme apply)
 
 (install-eval-types)
 (define (eval exp env)
-    (display "eval:") (newline)
-    (display exp) (newline)
     (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         (else
@@ -227,14 +294,10 @@
                                 (list-of-values (operands exp) env)))
                     (else (error "Unkown expression type: EVAL" exp)))))))
 
-(define apply-in-underlying-scheme apply)
-
 (define (apply procedure arguments)
     (cond ((primitive-procedure? procedure)
             (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
-            (display "procedure: ") (newline)
-            (display (procedure-body procedure)) (newline)
             (eval-sequence
                 (procedure-body procedure)
                 (extend-environment
@@ -265,8 +328,6 @@
         (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
-(define (make-procedure parameters body env)
-    (list 'procedure parameters body env))
 (define (compound-procedure? p)
     (tagged-list? p 'procedure))
 (define (procedure-parameters p) (cadr p))
@@ -283,12 +344,19 @@
 (define the-empty-environment '())
 
 (define (make-frame variables values)
-    (cons variables values))
-(define (frame-variables frame) (car frame))
-(define (frame-values frame) (cdr frame))
+    (cons 'frame
+        (pair-merge-lists variables values)))
+(define (frame-bindings frame) (cdr frame))
+(define (first-binding bindings) (car bindings))
+(define (rest-bindings bindings) (cdr bindings))
+(define (frame-variables frame) (map binding-variable (frame-bindings frame)))
+(define (frame-values frame) (map binding-value (frame-bindings frame)))
+(define (binding-variable binding) (car binding))
+(define (binding-value binding) (cadr binding))
+(define (set-binding-value! binding value)
+    (set-car! (cdr binding) value))
 (define (add-binding-to-frame! var val frame)
-    (set-car! frame (cons var (car frame)))
-    (set-cdr! frame (cons val (cdr frame))))
+    (set-cdr! frame (cons (list var val) (cdr frame))))
 (define (extend-environment vars vals base-env)
     (if (= (length vars) (length vals))
         (cons (make-frame vars vals) base-env)
@@ -297,37 +365,53 @@
             (error "Too few arguments supplied" vars vals))))
 
 
+(define (make-generic-scanner null-proc eq-proc test-against)
+    (define (scan bindings)
+        (cond ((null? bindings) (null-proc))
+            ((eq? test-against (binding-variable (first-binding bindings)))
+                (eq-proc bindings))
+            (else (scan (rest-bindings bindings)))))
+    (lambda (frame) (scan (frame-bindings frame))))
+
 (define (make-scanner null-proc eq-proc test-against)
-    (define (scan vars vals)
-        (cond ((null? vars) (null-proc))
-            ((eq? test-against (car vars)) (eq-proc vals))
-            (else (scan (cdr vars) (cdr vals)))))
-    scan)
+    (make-generic-scanner
+        null-proc
+        (lambda (bindings)
+            (eq-proc (first-binding bindings)))
+        test-against))
+
+(define (make-scanner-and-remove null-proc test-against)
+    (make-generic-scanner
+        null-proc
+        (lambda (bindings)
+            (set-car! bindings (rest-bindings frame)))
+        test-against))
 
 (define (check-env-then-scan scan env error-proc)
     (if (eq? env the-empty-environment)
         (error-proc)
-        (let ((frame (first-frame env)))
-            (scan (frame-variables frame)
-                  (frame-values frame)))))
+        (scan (first-frame env))))
 
 (define (lookup-variable-value var env)
     (define (env-loop env)
         (let ((scan (make-scanner
                         (lambda () (env-loop (enclosing-environment env)))
-                        (lambda (vals) (car vals))
+                        (lambda (binding) (binding-value binding))
                         var)))
             (check-env-then-scan
                     scan
                     env
                     (lambda () (error "Unbound variable:" var)))))
-    (env-loop env))
+    (let ((value (env-loop env)))
+        (if (eq? value '*unassigned*)
+            (error "Unassigned variable:" var)
+            value)))
 
 (define (set-variable-value! var val env)
     (define (env-loop env)
         (let ((scan (make-scanner
                         (lambda () (env-loop (enclosing-environment env)))
-                        (lambda (vals) (set-car! vals val))
+                        (lambda (binding) (set-binding-value! binding val))
                         var)))
             (check-env-then-scan
                     scan
@@ -338,7 +422,7 @@
 (define (define-variable! var val env)
     (let ((scan (make-scanner
                     (lambda () (add-binding-to-frame! var val (first-frame env)))
-                    (lambda (vals) (set-car! vals val))
+                    (lambda (binding) (set-binding-value! binding val))
                     var)))
         (check-env-then-scan
                 scan
@@ -348,12 +432,9 @@
 (define (make-unbound! var env)
     (define (already-unbound)
         (error "Variable is already unbound: UNBIND" var))
-    (let ((scan (make-scanner
+    (let ((scan (make-scanner-and-remove
                     already-unbound
-                    (lambda (vars vals) 
-                        (set-car! vars (cdr vars))
-                        (set-car! vals (cdr vals)))
-                        var)))
+                    var)))
         (check-env-then-scan
             scan
             env
@@ -386,6 +467,7 @@
           (list '= =)
           (list '<= <=)
           (list '>= >=)
+          (list '*unassigned* '*unassigned*)
           ))
 (define (primitive-procedure-names)
     (map car primitive-procedures))
@@ -424,4 +506,3 @@
 
 (define the-global-environment (setup-environment))
 (driver-loop)
-

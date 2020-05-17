@@ -536,3 +536,16 @@
 
 (define the-global-environment (setup-environment))
 (driver-loop)
+
+
+;b) Louis's reasoning is loose because, you'd have to do something akin to what the transformed letrec is. In a traditional let, the variables are defined in terms of the outer environment, and used in the inner environment. Because of letrecs transformation, the variables are defined in terms of the inner environment. Having the variables be defined in terms of the inner environment is crucial for them to have access to each other, so that they are bound by the time they need access to one another.
+
+; Basically, for recursive definitions to work, the <fact-body> needs access to the bounded <fact>, which:
+;(let ((<fact> <fact-body>))) 
+; does not provide, while
+;(let ((<fact> '*unassigned*))
+;    (set! <fact> <fact-body>))
+;and
+;(let ()
+;    (define <fact> <fact-body>))
+;do allow for.

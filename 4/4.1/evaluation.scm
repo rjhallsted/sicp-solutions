@@ -301,8 +301,6 @@
 (define apply-in-underlying-scheme apply)
 
 (define (eval exp env)
-    (display "eval:") (newline)
-    (display exp) (newline)
     (cond ((self-evaluating? exp) exp)
         ((quoted? exp) (text-of-quote exp))
         ((variable? exp) (lookup-variable-value exp env))
@@ -329,8 +327,6 @@
     (cond ((primitive-procedure? procedure)
             (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
-            (display "procedure:") (newline)
-            (display (procedure-body procedure)) (newline)
             (eval-sequence
                 (procedure-body procedure)
                 (extend-environment

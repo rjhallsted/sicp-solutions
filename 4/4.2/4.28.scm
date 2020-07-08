@@ -1,0 +1,1 @@
+;If you were to give eval, a thunk, calling eval on it would just result in infinite recursion.

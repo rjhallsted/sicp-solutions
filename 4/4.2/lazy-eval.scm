@@ -302,7 +302,7 @@
 
 (define (eval exp env)
     (cond ((self-evaluating? exp) exp)
-        ((quoted? exp) (text-of-quote exp))
+        ((quoted? exp) (text-of-quote exp env))
         ((variable? exp) (lookup-variable-value exp env))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))

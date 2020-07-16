@@ -1,0 +1,1 @@
+;This allows for getting around the need to delay arguments in things like the integral function. Here, everything is lazily evaluated, so that the entire parse tree is lazily evaluated.
